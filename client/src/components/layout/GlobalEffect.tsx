@@ -32,7 +32,10 @@ const GlobalEffect = (props: { children: React.ReactNode }) => {
         switch (response.status) {
           case HTTP_STATUS_CODE.UNAUTHORIZED:
           case HTTP_STATUS_CODE.FORBIDDEN:
-            setTimeout(reset, 2000);
+            setTimeout(reset, 1500);
+            break;
+          case HTTP_STATUS_CODE.I_AM_A_TEAPOT:
+            reset();
             break;
           default:
             break;

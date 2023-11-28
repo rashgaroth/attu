@@ -6,35 +6,41 @@ import { CACHE_KEY, MILVUS_ADDRESS, HTTP_STATUS_CODE } from '../utils';
 import { HttpError } from 'http-errors';
 import HttpErrors from 'http-errors';
 
+// in this middleware, we will verify
+// if the MILVUS_ADDRESS in the request header is valid,
+// & if the milvus client for that MILVUS_ADDRESS is exist, if not, send a message to the client
+// if so, extract the client to the request, so that later handler can make use of it.
 export const ReqHeaderMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  // get
   const cache = req.app.get(CACHE_KEY);
   // all ape requests need set milvus address in header.
   // server will set active address in milvus service.
   const milvusAddress = (req.headers[MILVUS_ADDRESS] as string) || '';
 
+  const clientExist = cache.has(milvusAddress);
+
   // console.log('------ Request headers -------', req.headers);
   //  only api request has MILVUS_ADDRESS.
   //  When client run in express, we dont need static files like: xx.js run this logic.
   //  Otherwise will cause 401 error.
-  if (milvusAddress && cache.has(milvusAddress)) {
+  if (milvusAddress && clientExist) {
     MilvusService.activeAddress = milvusAddress;
     // insight cache will update expire time when use insightCache.get
-    MilvusService.activeMilvusClient = cache.get(milvusAddress);
+    MilvusService.activeMilvusClient = cache.get(milvusAddress).client;
+
+    // store the client on the request
+    req.client = cache.get(milvusAddress);
   }
 
   const CONNECT_URL = `/api/v1/milvus/connect`;
 
-  if (
-    req.url !== CONNECT_URL &&
-    milvusAddress &&
-    !MilvusService.activeMilvusClient
-  ) {
+  if (req.url !== CONNECT_URL && milvusAddress && !clientExist) {
     throw HttpErrors(
-      HTTP_STATUS_CODE.FORBIDDEN,
+      HTTP_STATUS_CODE.I_AM_A_TEAPOT,
       'Can not find your connection, please check your connection settings.'
     );
   }

@@ -9,6 +9,7 @@ import { HTTP_STATUS_CODE } from '../utils/Const';
 import { DEFAULT_MILVUS_PORT } from '../utils';
 import { connectivityState } from '@grpc/grpc-js';
 import { DatabasesService } from '../database/databases.service';
+import { UserService } from '../users/users.service';
 
 export class MilvusService {
   // Share with all instances, so activeAddress is static
@@ -85,16 +86,27 @@ export class MilvusService {
 
       // If the server is healthy, set the active address and add the client to the cache
       MilvusService.activeAddress = address;
-      cache.set(address, milvusClient);
 
       // Create a new database service and check if the specified database exists
       const databaseService = new DatabasesService(this);
       const hasDatabase = await databaseService.hasDatabase(database);
 
+      const usersService = new UserService(this);
+
       // if database exists, use this db
       if (hasDatabase) {
         await databaseService.use(database);
       }
+
+      // get user roles
+      const allGrants = await usersService.listUserGrants({
+        username: username,
+      });
+
+      console.log('rall', allGrants);
+
+      // cache data
+      cache.set(address, { client: milvusClient, test: 1 });
 
       // Return the address and the database (if it exists, otherwise return 'default')
       return { address, database: hasDatabase ? database : 'default' };

@@ -12,8 +12,13 @@
     "baseUrl": ".",
     "resolveJsonModule": true,
     "paths": {
-      "*": ["node_modules/*"]
+      "*": [
+        "node_modules/*"
+      ]
     }
   },
-  "include": ["src/**/*", "../../src/**/server"]
+  "include": [
+    "src/**/*",
+    "../../src/**/server",
+  ]
 }

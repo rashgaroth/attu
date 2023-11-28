@@ -108,15 +108,7 @@ export class UserController {
 
   async getRoles(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = (await this.userService.getRoles()) as any;
-
-      for (let i = 0; i < result.results.length; i++) {
-        const { entities } = await this.userService.listGrants({
-          roleName: result.results[i].role.name,
-        });
-        result.results[i].entities = entities;
-      }
-
+      const result = await this.userService.getRolesWithGrants();
       res.send(result);
     } catch (error) {
       next(error);

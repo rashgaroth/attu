@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@json2csv/plainjs": "^7.0.3",
-    "@zilliz/milvus2-sdk-node": "2.3.4",
+    "@zilliz/milvus2-sdk-node": "2.3.5",
     "axios": "^1.6.2",
     "chalk": "^4.1.2",
     "class-sanitizer": "^1.0.1",
@@ -77,7 +77,7 @@
     "build": "yarn clean && tsc",
     "build-electron": "node electron-prebuild && yarn build",
     "prestart": "rm -rf dist && yarn build",
-    "start": "nodemon src/app.ts",
+    "start": "nodemon --files src/app.ts",
     "start:plugin": "yarn build && cross-env PLUGIN_DEV=1 node dist/attu/express/src/app.js",
     "start:prod": "node dist/src/app.js",
     "start:debug": "DEBUG=express:* nodemon src/app.ts",

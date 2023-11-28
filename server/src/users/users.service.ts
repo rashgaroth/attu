@@ -57,7 +57,7 @@ export class UserService {
     return res;
   }
 
-  async selectUser(data?: SelectUserReq) {
+  async selectUser(data: SelectUserReq) {
     const res = await this.milvusService.client.selectUser(data);
     throwErrorFromSDK(res.status);
 
@@ -121,6 +121,40 @@ export class UserService {
     const res = await this.milvusService.client.revokeRolePrivilege(data);
     throwErrorFromSDK(res);
     return res;
+  }
+
+  async getRolesWithGrants() {
+    const result = await this.getRoles();
+
+    for (let i = 0; i < result.results.length; i++) {
+      const { entities } = await this.listGrants({
+        roleName: result.results[i].role.name,
+      });
+      result.results[i].entities = entities;
+    }
+
+    return result;
+  }
+
+  async listUserGrants(data: { username: string }) {
+    // get user roles
+    const { results } = await this.selectUser({
+      username: data.username,
+      includeRoleInfo: true,
+    });
+
+    const roles = results.reduce(
+      (acc, r) => acc.concat(r.roles.map(role => role.name)),
+      []
+    );
+
+    const res = await this.getRolesWithGrants();
+
+    const grants = res.results.filter(d => roles.indexOf(d.role.name) !== -1);
+
+    console.log('grants', grants);
+
+    return grants;
   }
 
   async revokeAllRolePrivileges(data: { roleName: string }) {
