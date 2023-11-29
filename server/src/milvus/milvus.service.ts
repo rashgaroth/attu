@@ -12,9 +12,17 @@ import { DatabasesService } from '../database/databases.service';
 import { UserService } from '../users/users.service';
 
 export class MilvusService {
+  private usersService: UserService;
+  private databaseService: DatabasesService;
+
   // Share with all instances, so activeAddress is static
   static activeAddress: string;
   static activeMilvusClient: MilvusClient;
+
+  constructor() {
+    this.usersService = new UserService(this);
+    this.databaseService = new DatabasesService(this);
+  }
 
   get sdkInfo() {
     return MilvusClient.sdkInfo;
@@ -88,25 +96,21 @@ export class MilvusService {
       MilvusService.activeAddress = address;
 
       // Create a new database service and check if the specified database exists
-      const databaseService = new DatabasesService(this);
-      const hasDatabase = await databaseService.hasDatabase(database);
-
-      const usersService = new UserService(this);
+      const hasDatabase = await this.databaseService.hasDatabase(database);
 
       // if database exists, use this db
       if (hasDatabase) {
-        await databaseService.use(database);
+        await this.databaseService.use(database);
       }
 
       // get user roles
-      const allGrants = await usersService.listUserGrants({
+      // require SelectOwnership
+      const grants = await this.usersService.listUserGrants({
         username: username,
       });
 
-      console.dir(allGrants, { depth: null });
-
-      // cache data
-      cache.set(address, { client: milvusClient, test: 1 });
+      // cache client and grants for later usage
+      cache.set(address, { client: milvusClient, grants });
 
       // Return the address and the database (if it exists, otherwise return 'default')
       return { address, database: hasDatabase ? database : 'default' };

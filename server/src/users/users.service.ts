@@ -17,9 +17,17 @@ import {
   RbacObjects,
   ListGrantsReq,
   OperateRolePrivilegeReq,
+  SelectRoleResponse,
 } from '@zilliz/milvus2-sdk-node';
 import { throwErrorFromSDK } from '../utils/Error';
 import { ObjectPrivileges } from './type';
+import {
+  PUBLIC_GRANTS,
+  ROOT_GRANTS,
+  ROOT_USER_NAME,
+  ROOT_ROLE,
+  PUBLIC_ROLE,
+} from './consts';
 
 export class UserService {
   constructor(private milvusService: MilvusService) {}
@@ -164,8 +172,6 @@ export class UserService {
       );
     }
 
-    console.dir(result.results, { depth: null });
-
     return result;
   }
 
@@ -185,6 +191,10 @@ export class UserService {
    * }
    */
   async listUserGrants(data: { username: string }): Promise<ObjectPrivileges> {
+    // if username is root, just return the root grants
+    if (data.username === ROOT_USER_NAME) {
+      return ROOT_GRANTS;
+    }
     // get user roles
     const { results } = await this.selectUser({
       username: data.username,
@@ -193,10 +203,31 @@ export class UserService {
 
     // extract roles
     const roles = results.flatMap(r => r.roles.map(role => role.name));
+
+    // if roles contains root, just return the root grants
+    if (roles.includes(ROOT_ROLE)) {
+      return ROOT_GRANTS;
+    }
+
     // get roles grants
-    const res = await this.getRolesGrants({ roles });
+    let grants: SelectRoleResponse = {
+      results: [],
+      status: { error_code: 'Success', reason: '' },
+    };
+
+    try {
+      grants = await this.getRolesGrants({ roles });
+    } catch (error) {
+      // if user don't have SelectOwnership, do nothing
+    }
+
     // extract privileges
-    const entities = res.results.flatMap(result => result.entities);
+    const entities = grants.results.flatMap(result => result.entities);
+
+    // initial grant
+    let grant: ObjectPrivileges = roles.includes(PUBLIC_ROLE)
+      ? PUBLIC_GRANTS
+      : {};
 
     // re-org data strcture
     const result = entities.reduce((acc, entity) => {
@@ -210,7 +241,9 @@ export class UserService {
         entity.grantor.privilege.name
       );
       return acc;
-    }, {} as ObjectPrivileges);
+    }, grant);
+
+    console.dir(result, { depth: null });
 
     return result;
   }
