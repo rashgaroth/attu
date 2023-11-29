@@ -225,7 +225,7 @@ export class UserService {
     const entities = grants.results.flatMap(result => result.entities);
 
     // initial grant
-    let grant: ObjectPrivileges = roles.includes(PUBLIC_ROLE)
+    const grant: ObjectPrivileges = roles.includes(PUBLIC_ROLE)
       ? PUBLIC_GRANTS
       : {};
 

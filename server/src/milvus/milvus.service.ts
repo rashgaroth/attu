@@ -106,7 +106,7 @@ export class MilvusService {
       // get user roles
       // require SelectOwnership
       const grants = await this.usersService.listUserGrants({
-        username: username,
+        username,
       });
 
       // cache client and grants for later usage
