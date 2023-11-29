@@ -103,7 +103,7 @@ export class MilvusService {
         username: username,
       });
 
-      console.log('rall', allGrants);
+      console.dir(allGrants, { depth: null });
 
       // cache data
       cache.set(address, { client: milvusClient, test: 1 });

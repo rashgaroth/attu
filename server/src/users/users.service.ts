@@ -19,6 +19,7 @@ import {
   OperateRolePrivilegeReq,
 } from '@zilliz/milvus2-sdk-node';
 import { throwErrorFromSDK } from '../utils/Error';
+import { ObjectPrivileges } from './type';
 
 export class UserService {
   constructor(private milvusService: MilvusService) {}
@@ -123,40 +124,106 @@ export class UserService {
     return res;
   }
 
-  async getRolesWithGrants() {
+  /**
+   * This method is used to get the roles and their associated grants.
+   * It first fetches all the roles, then gets the grants associated with each role.
+   * The grants are then added to the corresponding role object.
+   * If a roles array is provided in the data parameter, it filters the results to only include the specified roles.
+   *
+   * @param {Object} [data] - An optional object containing an array of role names.
+   * @param {string[]} [data.roles] - An optional array of role names to filter the results.
+   *
+   * @returns {Promise<Object>} A promise that resolves to an object containing the roles and their associated grants.
+   * The object has the following structure:
+   * {
+   *   results: [
+   *     {
+   *       role: { name: 'roleName', ... },
+   *       entities: [
+   *         { grantor: { privilege: { name: 'privilegeName', ... } }, ... },
+   *         ...
+   *       ]
+   *     },
+   *     ...
+   *   ]
+   * }
+   */
+  async getRolesGrants(data?: { roles: string[] }) {
     const result = await this.getRoles();
 
-    for (let i = 0; i < result.results.length; i++) {
-      const { entities } = await this.listGrants({
-        roleName: result.results[i].role.name,
-      });
-      result.results[i].entities = entities;
+    const entitiesPromises = result.results.map(async role => {
+      const { entities } = await this.listGrants({ roleName: role.role.name });
+      return { ...role, entities };
+    });
+
+    result.results = await Promise.all(entitiesPromises);
+
+    if (data && data.roles.length) {
+      result.results = result.results.filter(r =>
+        data.roles.includes(r.role.name)
+      );
     }
+
+    console.dir(result.results, { depth: null });
 
     return result;
   }
 
-  async listUserGrants(data: { username: string }) {
+  /**
+   * This method is used to list the privileges granted to a user.
+   * It first fetches the roles of the user, then gets the privileges associated with those roles.
+   * The privileges are then restructured into an object where the keys are the object names and the values are the privileges.
+   *
+   * @param {Object} data - An object containing the username of the user.
+   * @param {string} data.username - The username of the user.
+   *
+   * @returns {Promise<ObjectPrivileges>} A promise that resolves to an object containing the privileges of the user.
+   * The object has the following structure:
+   * {
+   *   Collection: { '*': { privileges: [ 'GetStatistics', 'Load' ] } },
+   *   Global: { '*': { privileges: [ '*' ] } }
+   * }
+   */
+  async listUserGrants(data: { username: string }): Promise<ObjectPrivileges> {
     // get user roles
     const { results } = await this.selectUser({
       username: data.username,
       includeRoleInfo: true,
     });
 
-    const roles = results.reduce(
-      (acc, r) => acc.concat(r.roles.map(role => role.name)),
-      []
-    );
+    // extract roles
+    const roles = results.flatMap(r => r.roles.map(role => role.name));
+    // get roles grants
+    const res = await this.getRolesGrants({ roles });
+    // extract privileges
+    const entities = res.results.flatMap(result => result.entities);
 
-    const res = await this.getRolesWithGrants();
+    // re-org data strcture
+    const result = entities.reduce((acc, entity) => {
+      if (!acc[entity.object.name]) {
+        acc[entity.object.name] = {};
+      }
+      if (!acc[entity.object.name][entity.object_name]) {
+        acc[entity.object.name][entity.object_name] = { privileges: [] };
+      }
+      acc[entity.object.name][entity.object_name].privileges.push(
+        entity.grantor.privilege.name
+      );
+      return acc;
+    }, {} as ObjectPrivileges);
 
-    const grants = res.results.filter(d => roles.indexOf(d.role.name) !== -1);
-
-    console.log('grants', grants);
-
-    return grants;
+    return result;
   }
 
+  /**
+   * This method is used to revoke all privileges from a role.
+   * It first fetches the existing privileges of the role, then revokes each privilege one by one.
+   *
+   * @param {Object} data - An object containing the name of the role.
+   * @param {string} data.roleName - The name of the role.
+   *
+   * @returns {Promise<void>} A promise that resolves when all privileges have been revoked.
+   */
   async revokeAllRolePrivileges(data: { roleName: string }) {
     // get existing privileges
     const existingPrivileges = await this.listGrants({

@@ -108,7 +108,7 @@ export class UserController {
 
   async getRoles(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await this.userService.getRolesWithGrants();
+      const result = await this.userService.getRolesGrants();
       res.send(result);
     } catch (error) {
       next(error);
