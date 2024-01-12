@@ -357,6 +357,26 @@ const Collections = () => {
         collectionList.length === 0 || selectedCollections.length > 1,
     },
     {
+      icon: 'download',
+      type: 'button',
+      btnColor: 'secondary',
+      btnVariant: 'text',
+      onClick: () => {
+        console.log('download');
+        DataService.exportData(selectedCollections[0].collectionName);
+      },
+      label: btnTrans('export'),
+      // tooltip: collectionTrans('deleteTooltip'),
+      disabledTooltip: collectionTrans('renameTooltip'),
+      disabled: data => {
+        if (data.length === 0 || data.length > 1) {
+          return true;
+        } else {
+          return Number(data[0].loadedPercentage) !== 100;
+        }
+      },
+    },
+    {
       icon: 'edit',
       type: 'button',
       btnColor: 'secondary',

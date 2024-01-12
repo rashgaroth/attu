@@ -47,4 +47,11 @@ export class DataService extends BaseModel {
       path: `${this.COLLECTIONS_URL}/${collectionName}/empty`,
     });
   }
+
+  static exportData(collectionName: string) {
+    return super.download({
+      path: `${this.COLLECTIONS_URL}/${collectionName}/export`,
+      fileName: `${collectionName}.json`,
+    });
+  }
 }

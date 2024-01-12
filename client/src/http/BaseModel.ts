@@ -1,10 +1,11 @@
 import http from './Axios';
-import { Method } from 'axios';
+import { Method, ResponseType } from 'axios';
 
 type findParamsType = {
   method?: Method;
   path: string;
   params: { [x: string]: any };
+  responseType?: ResponseType;
   timeout?: number;
 };
 
@@ -13,18 +14,29 @@ type updateParamsType = {
   data?: any;
 };
 
+type downloadType = {
+  path: string;
+  fileName: string;
+}
+
 export default class BaseModel {
   constructor(props: any) {
     return this;
   }
 
   static async findAll(data: findParamsType) {
-    const { params = {}, path = '', method = 'get' } = data;
+    const {
+      params = {},
+      path = '',
+      method = 'get',
+      responseType = 'json',
+    } = data;
     const type = method === 'post' ? 'data' : 'params';
     const httpConfig = {
       method,
       url: path,
       [type]: { ...params },
+      responseType,
     };
 
     const res = await http(httpConfig);
@@ -89,5 +101,20 @@ export default class BaseModel {
     const { path, data } = options;
     const res = await http.post(path, data);
     return res.data.data;
+  }
+
+  static async download(data: downloadType) {
+    const response = await http({
+      url: data.path, // 替换为你的路由
+      method: 'GET',
+      responseType: 'blob', // important
+    });
+  
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', data.fileName); // or any other extension
+    document.body.appendChild(link);
+    link.click();
   }
 }

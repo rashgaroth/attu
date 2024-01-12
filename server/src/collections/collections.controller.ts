@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response, Router } from 'express';
+import * as JSONStream from 'jsonstream';
 import { dtoValidationMiddleware } from '../middleware/validation';
 import { CollectionsService } from './collections.service';
 import {
@@ -97,8 +98,11 @@ export class CollectionController {
     // segments
     this.router.get('/:name/psegments', this.getPSegment.bind(this));
     this.router.get('/:name/qsegments', this.getQSegment.bind(this));
-
+    // compact
     this.router.put('/:name/compact', this.compact.bind(this));
+
+    // export
+    this.router.get('/:name/export', this.exportQueryResult.bind(this));
     return this.router;
   }
 
@@ -439,5 +443,49 @@ export class CollectionController {
     } catch (error) {
       next(error);
     }
+  }
+
+  async exportQueryResult(req: Request, res: Response, next: NextFunction) {
+    const name = req.params?.name;
+    const data = req.body;
+    const pageSize = 1024;
+
+    const total = await this.collectionsService.count({
+      collection_name: name,
+    });
+
+    console.log(
+      `exporting ${name}, data count: ${total}, batch size: ${pageSize}`
+    );
+
+    console.time(`exporting ${name}`);
+
+    res.setHeader('Content-disposition', `attachment; filename=${name}.json`);
+    res.setHeader('Content-type', 'application/json');
+
+    const stream = JSONStream.stringify();
+    stream.pipe(res);
+
+    for (let i = 0; i < total; i += pageSize) {
+      console.time(`exporting from ${i} to ${i + pageSize}`);
+
+      const result = await this.collectionsService.query({
+        collection_name: name,
+        ...data,
+        limit: pageSize,
+        output_fields: ['*'],
+        offset: i,
+      });
+
+      result.data.forEach((item: any) => {
+        stream.write(item);
+      });
+
+      console.timeEnd(`exporting from ${i} to ${i + pageSize}`);
+    }
+
+    stream.end();
+
+    console.timeEnd(`exporting ${name}`);
   }
 }

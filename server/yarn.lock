@@ -1061,6 +1061,13 @@
     expect "^29.0.0"
     pretty-format "^29.0.0"
 
+"@types/jsonstream@^0.8.33":
+  version "0.8.33"
+  resolved "https://registry.yarnpkg.com/@types/jsonstream/-/jsonstream-0.8.33.tgz#7d37a16a78cf68a67858110dc1767023436fca23"
+  integrity sha512-yhg1SNOgJ8y2nOkvAQ1zZ1Z2xibxgFs7984+EeBPuWgo/TbuYo79+rj2wUVch3KF4GhhcwAi/AlJcehmLCXb3g==
+  dependencies:
+    "@types/node" "*"
+
 "@types/keyv@^3.1.4":
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/@types/keyv/-/keyv-3.1.4.tgz#3ccdb1c6751b0c7e52300bcdacd5bcbf8faa75b6"
@@ -3402,6 +3409,19 @@ jsonfile@^6.0.1:
   optionalDependencies:
     graceful-fs "^4.1.6"
 
+jsonparse@~1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/jsonparse/-/jsonparse-1.0.0.tgz#2622f4e66c08e1aac7edbeb76053c9b7e1211f76"
+  integrity sha512-X8/pl4Q98FceotM1YzNYRcdRpYKgKB6nOKW9oNZk4qssFGfSxA6tUyPgEYsZA+MAQ8nR6nBZwE2GKpeeOIeN3A==
+
+jsonstream@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/jsonstream/-/jsonstream-1.0.3.tgz#ff2d49c4f479b5bbcdf9f9e56c841cf87f0efa1d"
+  integrity sha512-yMDWHPGzQRwdiXy6itGgemEviwAoDp5i78y7rdzUa9RVe01vLJku+byVtqxwwSvp1y9LYHWYd+8MkYvbeilCug==
+  dependencies:
+    jsonparse "~1.0.0"
+    through ">=2.2.7 <3"
+
 keyv@^4.0.0:
   version "4.5.3"
   resolved "https://registry.yarnpkg.com/keyv/-/keyv-4.5.3.tgz#00873d2b046df737963157bd04f294ca818c9c25"
@@ -4565,6 +4585,11 @@ text-hex@1.0.x:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/text-hex/-/text-hex-1.0.0.tgz#69dc9c1b17446ee79a92bf5b884bb4b9127506f5"
   integrity sha512-uuVGNWzgJ4yhRaNSiubPY7OjISw4sw4E5Uv0wbjp+OzcbmVU/rsT8ujgcXJhn9ypzsgr5vlzpPqP+MBBKcGvbg==
+
+"through@>=2.2.7 <3":
+  version "2.3.8"
+  resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
+  integrity sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==
 
 tmp-promise@^3.0.2:
   version "3.0.3"
