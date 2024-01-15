@@ -45,7 +45,7 @@ const useStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(2),
   },
   table: {
-    minWidth: 750,
+    minWidth: '100%',
     minHeight: 57,
   },
   tableCell: {
@@ -54,7 +54,7 @@ const useStyles = makeStyles(theme => ({
   },
   cellContainer: {
     display: 'flex',
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap',
   },
   hoverActionCell: {
     transition: '0.2s all',
@@ -280,8 +280,12 @@ const EnhancedTable: FC<TableType> = props => {
                                           colDef.onClick(e, row);
                                       }}
                                     >
-                                      {row[colDef.id]}
+                                      {colDef.formatter
+                                        ? colDef.formatter(row)
+                                        : row[colDef.id]}
                                     </Button>
+                                  ) : colDef.formatter ? (
+                                    colDef.formatter(row)
                                   ) : (
                                     row[colDef.id]
                                   )}
@@ -299,8 +303,12 @@ const EnhancedTable: FC<TableType> = props => {
                                           colDef.onClick(e, row);
                                       }}
                                     >
-                                      {row[colDef.id]}
+                                      {colDef.formatter
+                                        ? colDef.formatter(row)
+                                        : row[colDef.id]}
                                     </Button>
+                                  ) : colDef.formatter ? (
+                                    colDef.formatter(row)
                                   ) : (
                                     row[colDef.id]
                                   )}

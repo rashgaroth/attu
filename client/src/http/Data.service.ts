@@ -1,6 +1,7 @@
 import { LoadSampleParam } from '@/pages/dialogs/Types';
 import { InsertDataParam, DeleteEntitiesReq } from '@/pages/collections/Types';
 import BaseModel from './BaseModel';
+import { ExportDataParam } from '@/pages/dialogs/Types';
 
 export class DataService extends BaseModel {
   static COLLECTIONS_URL = '/collections';
@@ -48,10 +49,10 @@ export class DataService extends BaseModel {
     });
   }
 
-  static exportData(collectionName: string) {
+  static exportData(collectionName: string, params: ExportDataParam) {
     return super.download({
       path: `${this.COLLECTIONS_URL}/${collectionName}/export`,
-      fileName: `${collectionName}.json`,
+      params,
     });
   }
 }

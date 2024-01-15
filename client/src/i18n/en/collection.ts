@@ -152,6 +152,10 @@ const collectionTrans = {
 
   // empty dialog
   emptyDataDialogInfo: `You are attempting to empty the data. This action cannot be undone, please proceed with caution.`,
+
+  // export dailog
+  exportFileName: `Export File Name`,
+  exportDataDialogInfo: `Please note that the size of the exported data will vary depending on the number of fields selected.  <br />`,
 };
 
 export default collectionTrans;

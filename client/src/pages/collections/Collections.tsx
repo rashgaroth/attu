@@ -26,6 +26,7 @@ import ReleaseCollectionDialog from '../dialogs/ReleaseCollectionDialog';
 import DropCollectionDialog from '../dialogs/DropCollectionDialog';
 import RenameCollectionDialog from '../dialogs/RenameCollectionDialog';
 import DuplicateCollectionDialog from '../dialogs/DuplicateCollectionDailog';
+import ExportDataDialog from '../dialogs/ExportDataDialog';
 import EmptyDataDialog from '../dialogs/EmptyDataDialog';
 import InsertDialog from '../dialogs/insert/Dialog';
 import ImportSampleDialog from '../dialogs/ImportSampleDialog';
@@ -362,8 +363,26 @@ const Collections = () => {
       btnColor: 'secondary',
       btnVariant: 'text',
       onClick: () => {
-        console.log('download');
-        DataService.exportData(selectedCollections[0].collectionName);
+        setDialog({
+          open: true,
+          type: 'custom',
+          params: {
+            component: (
+              <ExportDataDialog
+                collection={selectedCollections[0]}
+                cb={async () => {
+                  openSnackBar(
+                    successTrans('export', {
+                      name: collectionTrans('collection'),
+                    })
+                  );
+                }}
+              />
+            ),
+          },
+        });
+
+        // DataService.exportData(selectedCollections[0].collectionName);
       },
       label: btnTrans('export'),
       // tooltip: collectionTrans('deleteTooltip'),

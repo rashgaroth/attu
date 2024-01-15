@@ -43,6 +43,17 @@ export interface RenameCollectionProps {
   collectionName: string;
   cb?: () => void;
 }
+
+export interface ExportDataDialogProps {
+  collection: Collection;
+  cb?: () => void;
+}
+
+export interface ExportDataParam {
+  outputFields: string[];
+  filename: string;
+}
+
 export interface LoadSampleParam {
   collection_name: string;
   // e.g. [{vector: [1,2,3], age: 10}]

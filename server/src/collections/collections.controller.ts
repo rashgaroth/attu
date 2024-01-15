@@ -449,18 +449,20 @@ export class CollectionController {
     const name = req.params?.name;
     const data = req.body;
     const pageSize = 1024;
+    const outputFields = req.query.outputFields;
+    const filename = req.query.filename;
 
     const total = await this.collectionsService.count({
       collection_name: name,
     });
 
     console.log(
-      `exporting ${name}, data count: ${total}, batch size: ${pageSize}`
+      `exporting ${name}, output_fields: ${outputFields}, data count: ${total}, batch size: ${pageSize}`
     );
 
     console.time(`exporting ${name}`);
 
-    res.setHeader('Content-disposition', `attachment; filename=${name}.json`);
+    res.setHeader('Content-disposition', `attachment; filename=${filename}`);
     res.setHeader('Content-type', 'application/json');
 
     const stream = JSONStream.stringify();
@@ -473,7 +475,7 @@ export class CollectionController {
         collection_name: name,
         ...data,
         limit: pageSize,
-        output_fields: ['*'],
+        output_fields: outputFields || ['*'],
         offset: i,
       });
 

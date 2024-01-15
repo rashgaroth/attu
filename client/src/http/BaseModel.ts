@@ -16,8 +16,8 @@ type updateParamsType = {
 
 type downloadType = {
   path: string;
-  fileName: string;
-}
+  params: { outputFields: string[]; filename: string };
+};
 
 export default class BaseModel {
   constructor(props: any) {
@@ -105,15 +105,16 @@ export default class BaseModel {
 
   static async download(data: downloadType) {
     const response = await http({
-      url: data.path, // 替换为你的路由
+      url: data.path,
       method: 'GET',
+      params: data.params,
       responseType: 'blob', // important
     });
-  
+
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', data.fileName); // or any other extension
+    link.setAttribute('download', data.params.filename); // or any other extension
     document.body.appendChild(link);
     link.click();
   }

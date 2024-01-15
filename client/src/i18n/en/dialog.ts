@@ -15,6 +15,8 @@ const dialogTrans = {
 
   createTitle: `Create {{type}} on "{{name}}"`,
   emptyTitle: `Empty data for {{type}}`,
+  exportTitle: `Export data for {{type}}`,
+  selectFieldToExport: `Select <b>fields({{count}})</b> to export, total <b><i>{{total}}</i></b> rows.`
 };
 
 export default dialogTrans;

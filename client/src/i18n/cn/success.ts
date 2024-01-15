@@ -8,6 +8,7 @@ const successTrans = {
   rename: `{{name}}重命名成功。`,
   duplicate: `{{name}}复制成功.`,
   empty: `{{name}}清空已经开始.`,
+  export: `{{name}}的数据已经被导出.`,
 };
 
 export default successTrans;
