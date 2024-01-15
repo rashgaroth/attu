@@ -245,3 +245,9 @@ export const formatFieldType = (field: FieldHttp) => {
 
   return `${fieldType}${elementType}${maxCap}${dim}${maxLn}`;
 };
+
+export const ensureFileExtension = (filename: string, defaultExtension: string) => {
+  const extensions = ['.json', '.csv']; // Add more extensions if needed
+  const hasExtension = extensions.some(ext => filename.endsWith(ext));
+  return hasExtension ? filename : `${filename}${defaultExtension}`;
+};

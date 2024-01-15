@@ -46,7 +46,7 @@ export type ToolBarConfig = Partial<TableSwitchType> &
     position?: 'right' | 'left';
     component?: ReactElement;
     btnVariant?: 'contained' | 'outlined' | 'text';
-    btnColor?: 'primary' | 'secondary'
+    btnColor?: 'primary' | 'secondary';
   };
 
 export type TableHeadType = {
@@ -58,6 +58,7 @@ export type TableHeadType = {
   colDefinitions: ColDefinitionsType[];
   handleSort?: (e: any, p: string) => void;
   openCheckBox?: boolean;
+  disableSelect?: boolean;
 };
 
 export type TableEditableHeadType = {

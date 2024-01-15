@@ -15,8 +15,8 @@ const dialogTrans = {
 
   createTitle: `在 "{{name}}" 上创建 {{type}}`,
   emptyTitle: `清空{{type}}的数据`,
-  exportTitle: `导出{type}}的数据`,
-  selectFieldToExport: `选择要导出的<strong>字段({{count}})</strong>`
+  exportTitle: `导出{{type}}的数据`,
+  selectFieldToExport: `导出 <b>({{count}}) 字段</b>, 一共 <b><i>{{total}}</i></b> 行.`
 };
 
 export default dialogTrans;

@@ -367,6 +367,7 @@ const Collections = () => {
           open: true,
           type: 'custom',
           params: {
+            disableEscapeKeyDown: true,
             component: (
               <ExportDataDialog
                 collection={selectedCollections[0]}
@@ -381,12 +382,9 @@ const Collections = () => {
             ),
           },
         });
-
-        // DataService.exportData(selectedCollections[0].collectionName);
       },
       label: btnTrans('export'),
-      // tooltip: collectionTrans('deleteTooltip'),
-      disabledTooltip: collectionTrans('renameTooltip'),
+      disabledTooltip: collectionTrans('exportDisableTooltip'),
       disabled: data => {
         if (data.length === 0 || data.length > 1) {
           return true;

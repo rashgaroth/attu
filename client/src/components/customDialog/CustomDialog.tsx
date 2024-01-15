@@ -65,6 +65,7 @@ const CustomDialog: FC<CustomDialogType> = props => {
     cancelLabel = t('cancel'),
     confirmClass = '',
     handleClose,
+    disableEscapeKeyDown,
   } = params; // for notice type
   const { component: CustomComponent } = params; // for custom type
   const handleConfirm = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -103,6 +104,7 @@ const CustomDialog: FC<CustomDialogType> = props => {
           handleCancel();
         }
       }}
+      disableEscapeKeyDown
     >
       {type === 'notice' ? (
         <form onSubmit={handleConfirm}>

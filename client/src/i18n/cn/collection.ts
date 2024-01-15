@@ -20,6 +20,7 @@ const collectionTrans = {
   downloadDisabledTooltip: '请在导出前查询数据',
   empty: '清空数据',
   emptyDataDisableTooltip: '请选择一个已加载的Collection进行清空数据操作',
+  exportDisableTooltip: '请选择一个已加载的Collection进行数据导出操作',
 
   collection: 'Collection',
   entities: 'Entities',
@@ -155,6 +156,7 @@ const collectionTrans = {
 
   // export dailog
   exportFileName: `文件名`,
-  exportDataDialogInfo: `请注意，导出数据的大小会根据所选字段的数量而变化。<br />`,};
+  exportDataDialogInfo: `请注意，导出数据的大小会根据所选字段的数量而变化。<br />`,
+};
 
 export default collectionTrans;

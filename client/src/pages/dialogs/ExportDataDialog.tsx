@@ -1,4 +1,5 @@
 import { FC, useContext, useMemo, useState } from 'react';
+import * as d3 from 'd3';
 import { Typography, makeStyles, Theme } from '@material-ui/core';
 import { useTranslation } from 'react-i18next';
 import { rootContext } from '@/context';
@@ -9,7 +10,7 @@ import { ExportDataDialogProps } from './Types';
 import { ColDefinitionsType } from '@/components/grid/Types';
 import CustomInput from '@/components/customInput/CustomInput';
 import { ITextfieldConfig } from '@/components/customInput/Types';
-import { formatForm, formatFieldType } from '@/utils';
+import { formatForm, formatFieldType, ensureFileExtension } from '@/utils';
 import { useFormValidation } from '@/hooks';
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -24,9 +25,11 @@ const useStyles = makeStyles((theme: Theme) => ({
     width: 580,
   },
 }));
+const digitFormat = d3.format(',');
 
 const ExportDataDialog: FC<ExportDataDialogProps> = props => {
   const { collection, cb } = props;
+  const [exporting, setExporting] = useState<boolean>(false);
   const [selectedFields, setSelectedFields] = useState<FieldHttp[]>([]);
   const [form, setForm] = useState({
     filename: `${collection.collectionName}.json`,
@@ -50,10 +53,12 @@ const ExportDataDialog: FC<ExportDataDialogProps> = props => {
     setForm({ filename: value });
   };
   const handleConfirm = async () => {
+    setExporting(true);
     await DataService.exportData(collection.collectionName, {
       outputFields: selectedFields.map(s => s.name),
-      filename: form.filename,
+      filename: ensureFileExtension(form.filename, '.json'),
     });
+    setExporting(false);
     handleCloseDialog();
     cb && cb();
   };
@@ -90,6 +95,7 @@ const ExportDataDialog: FC<ExportDataDialogProps> = props => {
         }),
       },
     ],
+    disabled: exporting,
     defaultValue: form.filename,
   };
 
@@ -124,7 +130,7 @@ const ExportDataDialog: FC<ExportDataDialogProps> = props => {
             dangerouslySetInnerHTML={{
               __html: dialogTrans('selectFieldToExport', {
                 count: selectedFields.length,
-                total: collection.rowCount
+                total: digitFormat(Number(collection.rowCount)),
               }),
             }}
           ></Typography>
@@ -138,13 +144,17 @@ const ExportDataDialog: FC<ExportDataDialogProps> = props => {
               selected={selectedFields}
               setSelected={setSelectedFields}
               showPagination={false}
+              disableSelect={exporting}
             />
           </div>
         </div>
       }
-      confirmLabel={btnTrans('export')}
+      confirmLabel={`${btnTrans('export')} to ${ensureFileExtension(
+        form.filename,
+        '.json'
+      )}`}
       handleConfirm={handleConfirm}
-      confirmDisabled={disabled || selectedFields.length === 0}
+      confirmDisabled={disabled || selectedFields.length === 0 || exporting}
     />
   );
 };

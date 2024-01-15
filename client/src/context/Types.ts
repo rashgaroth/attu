@@ -23,6 +23,7 @@ export type DialogType = {
     confirmLabel?: string;
     cancelLabel?: string;
     confirmClass?: string;
+    disableEscapeKeyDown?: boolean;
     /**
      * Usually we control open status in root context,
      * if we need a hoc component depend on setDialog in context,

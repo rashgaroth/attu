@@ -20,6 +20,7 @@ const collectionTrans = {
   downloadDisabledTooltip: 'Please query data before exporting',
   empty: 'empty data',
   emptyDataDisableTooltip: 'Please select one loaded collection to empty data',
+  exportDisableTooltip: 'Please select one loaded collection to export data',
 
   collection: 'Collection',
   entities: 'entities',
