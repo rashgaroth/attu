@@ -3,6 +3,9 @@ import * as JSONStream from 'jsonstream';
 import * as csv from 'fast-csv';
 import { dtoValidationMiddleware } from '../middleware/validation';
 import { CollectionsService } from './collections.service';
+import { MilvusService } from '../milvus/milvus.service';
+import { LoadCollectionReq } from '@zilliz/milvus2-sdk-node';
+import { WS_EVENTS, WS_EVENTS_TYPE } from '../utils';
 import {
   CreateAliasDto,
   CreateCollectionDto,
@@ -13,7 +16,7 @@ import {
   RenameCollectionDto,
   DuplicateCollectionDto,
 } from './dto';
-import { LoadCollectionReq } from '@zilliz/milvus2-sdk-node';
+import { pubSub } from '../events';
 
 export class CollectionController {
   private collectionsService: CollectionsService;
@@ -446,27 +449,57 @@ export class CollectionController {
     }
   }
 
+  // This function exports the result of a query
   async exportQueryResult(req: Request, res: Response, next: NextFunction) {
+    // Get the collection name from the request parameters
     const name = req.params?.name;
+    // Get the request body
     const data = req.body;
-    const pageSize = 1024;
+    // Set the page size
+    const pageSize = 512;
+    // Get the output fields from the request query
     const outputFields = req.query.outputFields as string[];
+    // Get the filename from the request query
     const filename = req.query.filename as string;
 
+    // Get the total count of the collection
     const total = await this.collectionsService.count({
       collection_name: name,
     });
 
+    // Get the primary key field name of the collection
+    const pkField = await MilvusService.activeMilvusClient.getPkFieldName({
+      collection_name: name,
+    });
+    // Get the primary key field type of the collection
+    const pkType = await MilvusService.activeMilvusClient.getPkFieldType({
+      collection_name: name,
+    });
+
+    // Initialize the lastId based on the primary key type
+    let lastId: string | number = pkType === 'Int64' ? 0 : '';
+
+    // Determine the export type based on the filename extension
     const type = filename.endsWith('.csv') ? 'csv' : 'json';
 
+    // Log the export information
     console.log(
       `exporting ${name}, output_fields: ${outputFields}, data count: ${total}, batch size: ${pageSize}`
     );
 
+    // Emit the start event
+    pubSub.emit('ws_pubsub', {
+      event: WS_EVENTS.EXPORT + WS_EVENTS_TYPE.START,
+      data: filename,
+    });
+
+    // Start the timer for the export operation
     console.time(`exporting ${filename}`);
 
+    // Set the response header for the file download
     res.setHeader('Content-disposition', `attachment; filename=${filename}`);
 
+    // Initialize the stream based on the export type
     let stream: NodeJS.ReadWriteStream;
     if (type === 'csv') {
       res.setHeader('Content-type', 'text/csv');
@@ -476,39 +509,70 @@ export class CollectionController {
       stream = JSONStream.stringify();
     }
 
+    // Pipe the stream to the response
     stream.pipe(res);
 
+    // Loop through the data by page size
     for (let i = 0; i < total; i += pageSize) {
-      console.time(`exporting from ${i} to ${i + pageSize}`);
+      // const page
+      const nextPage = i + pageSize > total ? total : i + pageSize;
+      // Start the timer for the current page
+      console.time(`exporting from ${i} to ${nextPage}`);
 
+      // Emit the export event
+      pubSub.emit('ws_pubsub', {
+        event: WS_EVENTS.EXPORT,
+        data: nextPage,
+      });
+
+      // Construct the expression for the query
+      let expr = `${pkField} > ${
+        pkType === 'VarChar' ? `'${lastId}'` : `${lastId}`
+      }`;
+
+      // Execute the query
       const result = await this.collectionsService.query({
         collection_name: name,
         ...data,
         limit: pageSize,
+        expr,
         output_fields: outputFields || ['*'],
-        offset: i,
       });
 
+      // Update the lastId for the next page
+      lastId = result.data[result.data.length - 1][pkField];
+
+      // Loop through the result data
       for (const item of result.data) {
         for (const key in item) {
-          // delete id
+          // Delete the id if it's not in the output fields
           if (!outputFields.includes(key)) {
             delete item[key];
             continue;
           }
-          // handle array
+          // Handle array data for csv export
           if (type === 'csv' && Array.isArray(item[key])) {
             item[key] = JSON.stringify(item[key]);
           }
         }
 
+        // Write the item to the stream
         stream.write(item as any);
       }
-      console.timeEnd(`exporting from ${i} to ${i + pageSize}`);
+      // End the timer for the current page
+      console.timeEnd(`exporting from ${i} to ${nextPage}`);
     }
 
+    // End the stream
     stream.end();
 
+    // Emit the stop event
+    pubSub.emit('ws_pubsub', {
+      event: WS_EVENTS.EXPORT + WS_EVENTS_TYPE.STOP,
+      data: filename,
+    });
+
+    // End the timer for the export operation
     console.timeEnd(`exporting ${filename}`);
   }
 }

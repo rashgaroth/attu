@@ -22,6 +22,7 @@ import {
   HasCollectionReq,
   CountReq,
   FieldSchema,
+  QueryReq,
 } from '@zilliz/milvus2-sdk-node';
 import { Parser } from '@json2csv/plainjs';
 import {

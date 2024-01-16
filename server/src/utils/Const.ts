@@ -18,6 +18,7 @@ export enum LOADING_STATE {
 
 export enum WS_EVENTS {
   COLLECTION = 'COLLECTION',
+  EXPORT = 'EXPORTING'
 }
 
 export enum WS_EVENTS_TYPE {
