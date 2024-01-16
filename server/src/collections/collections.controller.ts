@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import * as JSONStream from 'jsonstream';
+import * as csv from 'fast-csv';
 import { dtoValidationMiddleware } from '../middleware/validation';
 import { CollectionsService } from './collections.service';
 import {
@@ -449,23 +450,32 @@ export class CollectionController {
     const name = req.params?.name;
     const data = req.body;
     const pageSize = 1024;
-    const outputFields = req.query.outputFields;
-    const filename = req.query.filename;
+    const outputFields = req.query.outputFields as string[];
+    const filename = req.query.filename as string;
 
     const total = await this.collectionsService.count({
       collection_name: name,
     });
 
+    const type = filename.endsWith('.csv') ? 'csv' : 'json';
+
     console.log(
       `exporting ${name}, output_fields: ${outputFields}, data count: ${total}, batch size: ${pageSize}`
     );
 
-    console.time(`exporting ${name}`);
+    console.time(`exporting ${filename}`);
 
     res.setHeader('Content-disposition', `attachment; filename=${filename}`);
-    res.setHeader('Content-type', 'application/json');
 
-    const stream = JSONStream.stringify();
+    let stream: NodeJS.ReadWriteStream;
+    if (type === 'csv') {
+      res.setHeader('Content-type', 'text/csv');
+      stream = csv.format({ headers: true });
+    } else {
+      res.setHeader('Content-type', 'application/json');
+      stream = JSONStream.stringify();
+    }
+
     stream.pipe(res);
 
     for (let i = 0; i < total; i += pageSize) {
@@ -479,15 +489,26 @@ export class CollectionController {
         offset: i,
       });
 
-      result.data.forEach((item: any) => {
-        stream.write(item);
-      });
+      for (const item of result.data) {
+        for (const key in item) {
+          // delete id
+          if (!outputFields.includes(key)) {
+            delete item[key];
+            continue;
+          }
+          // handle array
+          if (type === 'csv' && Array.isArray(item[key])) {
+            item[key] = JSON.stringify(item[key]);
+          }
+        }
 
+        stream.write(item as any);
+      }
       console.timeEnd(`exporting from ${i} to ${i + pageSize}`);
     }
 
     stream.end();
 
-    console.timeEnd(`exporting ${name}`);
+    console.timeEnd(`exporting ${filename}`);
   }
 }
