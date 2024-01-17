@@ -132,6 +132,7 @@ const AttuGrid: FC<AttuGridType> = props => {
     order,
     orderBy,
     showPagination = true,
+    hideOnDisable,
   } = props;
 
   const _isSelected = (row: { [x: string]: any }) => {
@@ -204,6 +205,7 @@ const AttuGrid: FC<AttuGridType> = props => {
           <CustomToolbar
             toolbarConfigs={toolbarConfigs}
             selected={selected}
+            hideOnDisable={hideOnDisable}
           ></CustomToolbar>
         </Grid>
       )}

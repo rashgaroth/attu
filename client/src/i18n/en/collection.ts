@@ -20,7 +20,7 @@ const collectionTrans = {
   downloadDisabledTooltip: 'Please query data before exporting',
   empty: 'empty data',
   emptyDataDisableTooltip: 'Please select one loaded collection to empty data',
-  exportDisableTooltip: 'Please select one loaded collection to export data',
+  exportDisableTooltip: `Please select one loaded collection to export data, maximum row support : {{count}}`,
 
   collection: 'Collection',
   entities: 'entities',
@@ -155,7 +155,7 @@ const collectionTrans = {
   emptyDataDialogInfo: `You are attempting to empty the data. This action cannot be undone, please proceed with caution.`,
 
   // export dailog
-  exportFileName: `Export File Name`,
+  exportFileName: `Export File Name(.csv or .json)`,
   exportDataDialogInfo: `Please note that the size of the exported data will vary depending on the number of fields selected.  <br />`,
 };
 

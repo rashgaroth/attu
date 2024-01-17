@@ -7,7 +7,7 @@ let axiosResInterceptor: number | null = null;
 // let timer: Record<string, ReturnType<typeof setTimeout> | number>[] = [];
 // we only take side effect here, nothing else
 const GlobalEffect = (props: { children: React.ReactNode }) => {
-  const { openSnackBar } = useContext(rootContext);
+  const { openSnackBar, handleCloseDialog } = useContext(rootContext);
   const { logout } = useContext(authContext);
 
   // catch axios error here
@@ -22,6 +22,9 @@ const GlobalEffect = (props: { children: React.ReactNode }) => {
         return res;
       },
       function (error: any) {
+        // close dialog if error happen
+        handleCloseDialog();
+
         const { response = {} } = error;
 
         switch (response.status) {
@@ -32,16 +35,26 @@ const GlobalEffect = (props: { children: React.ReactNode }) => {
           default:
             break;
         }
+
         if (response.data) {
-          const { message: errMsg } = response.data;
-          // We need check status 401 in login page
-          // So server will return 500 when change the user password.
-          errMsg && openSnackBar(errMsg, 'error');
+          if (response.data instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = function () {
+              const { message: errMsg } = JSON.parse(reader.result as string);
+              errMsg && openSnackBar(errMsg, 'error');
+            };
+            reader.readAsText(response.data);
+          } else {
+            const { message: errMsg } = response.data;
+            errMsg && openSnackBar(errMsg, 'error');
+          }
           return Promise.reject(error);
         }
+
         if (error.message) {
           openSnackBar(error.message, 'error');
         }
+
         return Promise.reject(error);
       }
     );

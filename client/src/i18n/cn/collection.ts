@@ -2,7 +2,7 @@ const collectionTrans = {
   noLoadData: '没有加载的Collection',
   noData: '没有Collection',
 
-  rowCount: '大约的Entity数量',
+  rowCount: 'Entity的大致数量',
   count: 'Entity数量',
 
   create: '创建Collection',
@@ -20,7 +20,7 @@ const collectionTrans = {
   downloadDisabledTooltip: '请在导出前查询数据',
   empty: '清空数据',
   emptyDataDisableTooltip: '请选择一个已加载的Collection进行清空数据操作',
-  exportDisableTooltip: '请选择一个已加载的Collection进行数据导出操作',
+  exportDisableTooltip: `请选择一个已加载的Collection进行数据导出操作，最大支持行数 {{count}}`,
 
   collection: 'Collection',
   entities: 'Entities',
@@ -155,7 +155,7 @@ const collectionTrans = {
   emptyDataDialogInfo: `您正在尝试清空数据。此操作无法撤销，请谨慎操作。`,
 
   // export dailog
-  exportFileName: `文件名`,
+  exportFileName: `文件名 (.csv 或者 .json)`,
   exportDataDialogInfo: `请注意，导出数据的大小会根据所选字段的数量而变化。<br />`,
 };
 

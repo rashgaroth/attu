@@ -18,6 +18,7 @@ export type ToolBarType = {
   toolbarConfigs: ToolBarConfig[];
   selected?: any[];
   setSelected?: (selected: any[]) => void;
+  hideOnDisable?: boolean;
 };
 
 export type TableSwitchType = {
@@ -148,6 +149,7 @@ export type AttuGridType = ToolBarType & {
   orderBy?: string;
   tableHeaderHeight?: number;
   rowHeight?: number;
+  hideOnDisable?: boolean;
 };
 
 export type ActionBarType = {

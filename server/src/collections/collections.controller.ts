@@ -5,7 +5,13 @@ import { dtoValidationMiddleware } from '../middleware/validation';
 import { CollectionsService } from './collections.service';
 import { MilvusService } from '../milvus/milvus.service';
 import { LoadCollectionReq } from '@zilliz/milvus2-sdk-node';
-import { WS_EVENTS, WS_EVENTS_TYPE } from '../utils';
+import {
+  WS_EVENTS,
+  WS_EVENTS_TYPE,
+  HTTP_STATUS_CODE,
+  EXPORT_PAGE_SIZE,
+  EXPORT_MAX_COUNT,
+} from '../utils';
 import {
   CreateAliasDto,
   CreateCollectionDto,
@@ -17,6 +23,7 @@ import {
   DuplicateCollectionDto,
 } from './dto';
 import { pubSub } from '../events';
+import HttpErrors from 'http-errors';
 
 export class CollectionController {
   private collectionsService: CollectionsService;
@@ -456,7 +463,7 @@ export class CollectionController {
     // Get the request body
     const data = req.body;
     // Set the page size
-    const pageSize = 512;
+    const pageSize = EXPORT_PAGE_SIZE;
     // Get the output fields from the request query
     const outputFields = req.query.outputFields as string[];
     // Get the filename from the request query
@@ -467,6 +474,14 @@ export class CollectionController {
       collection_name: name,
     });
 
+    if (total > EXPORT_MAX_COUNT) {
+      return next(
+        HttpErrors(HTTP_STATUS_CODE.BAD_REQUEST, {
+          message: 'The maximum export row count cannot exceed 10,000.',
+        })
+      );
+    }
+
     // Get the primary key field name of the collection
     const pkField = await MilvusService.activeMilvusClient.getPkFieldName({
       collection_name: name,
@@ -475,9 +490,6 @@ export class CollectionController {
     const pkType = await MilvusService.activeMilvusClient.getPkFieldType({
       collection_name: name,
     });
-
-    // Initialize the lastId based on the primary key type
-    let lastId: string | number = pkType === 'Int64' ? 0 : '';
 
     // Determine the export type based on the filename extension
     const type = filename.endsWith('.csv') ? 'csv' : 'json';
@@ -500,17 +512,20 @@ export class CollectionController {
     res.setHeader('Content-disposition', `attachment; filename=${filename}`);
 
     // Initialize the stream based on the export type
-    let stream: NodeJS.ReadWriteStream;
-    if (type === 'csv') {
-      res.setHeader('Content-type', 'text/csv');
-      stream = csv.format({ headers: true });
-    } else {
-      res.setHeader('Content-type', 'application/json');
-      stream = JSONStream.stringify();
-    }
+    let stream: NodeJS.ReadWriteStream =
+      type === 'csv' ? csv.format({ headers: true }) : JSONStream.stringify();
+
+    // set res header
+    res.setHeader(
+      'Content-type',
+      type === 'csv' ? 'text/csv' : 'application/json'
+    );
 
     // Pipe the stream to the response
     stream.pipe(res);
+
+    // Initialize the lastId based on the primary key type
+    let lastId: string | number = pkType === 'Int64' ? 0 : '';
 
     // Loop through the data by page size
     for (let i = 0; i < total; i += pageSize) {

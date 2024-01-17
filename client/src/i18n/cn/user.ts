@@ -3,7 +3,7 @@ const userTrans = {
   updateTitle: '更新Milvus用户',
   updateRoleTitle: '更新用户角色',
   user: '用户',
-  users: '用户们',
+  users: '用户',
   deleteWarning: '您正在尝试删除用户。此操作无法撤销。',
   oldPassword: '当前密码',
   newPassword: '新密码',

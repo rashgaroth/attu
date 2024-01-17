@@ -1,7 +1,7 @@
 const overviewTrans = {
   load: '已加载的Collection',
   all: '所有Collection',
-  data: '大约的Entity数量',
+  data: 'Entity的大致数量',
   rows: '{{number}}行',
   loading: '正在加载Collection',
   sysInfo: '系统信息',

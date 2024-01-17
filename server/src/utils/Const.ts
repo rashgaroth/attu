@@ -9,6 +9,8 @@ export const CLIENT_CACHE = 'insight_cache';
 export const INDEX_CACHE = 'index_cache';
 export const CLIENT_TTL = 1000 * 60 * 60 * 24;
 export const INDEX_TTL = 1000 * 60 * 60;
+export const EXPORT_PAGE_SIZE = 1024;
+export const EXPORT_MAX_COUNT = 100000;
 
 export enum LOADING_STATE {
   LOADED,

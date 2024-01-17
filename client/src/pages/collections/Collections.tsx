@@ -31,7 +31,11 @@ import EmptyDataDialog from '../dialogs/EmptyDataDialog';
 import InsertDialog from '../dialogs/insert/Dialog';
 import ImportSampleDialog from '../dialogs/ImportSampleDialog';
 import { LOADING_STATE } from '@/consts';
-import { WS_EVENTS, WS_EVENTS_TYPE } from '@server/utils/Const';
+import {
+  WS_EVENTS,
+  WS_EVENTS_TYPE,
+  EXPORT_MAX_COUNT,
+} from '@server/utils/Const';
 import { checkIndexBuilding, checkLoading } from '@/utils';
 import Aliases from './Aliases';
 
@@ -384,12 +388,17 @@ const Collections = () => {
         });
       },
       label: btnTrans('export'),
-      disabledTooltip: collectionTrans('exportDisableTooltip'),
+      disabledTooltip: collectionTrans('exportDisableTooltip', {
+        count: EXPORT_MAX_COUNT,
+      }),
       disabled: data => {
         if (data.length === 0 || data.length > 1) {
           return true;
         } else {
-          return Number(data[0].loadedPercentage) !== 100;
+          return (
+            Number(data[0].loadedPercentage) !== 100 ||
+            Number(data[0].rowCount) > EXPORT_MAX_COUNT
+          );
         }
       },
     },
@@ -522,7 +531,7 @@ const Collections = () => {
       label: btnTrans('drop'),
       // tooltip: collectionTrans('deleteTooltip'),
       disabledTooltip: collectionTrans('deleteTooltip'),
-      disabled: data => data.length !== 1,
+      disabled: data => data.length === 0,
     },
 
     {
@@ -669,6 +678,7 @@ const Collections = () => {
           handleSort={handleGridSort}
           order={order}
           orderBy={orderBy}
+          hideOnDisable={true}
         />
       ) : (
         <>
