@@ -14,7 +14,6 @@ import { router as schemaRouter } from './schema';
 import { router as cronsRouter } from './crons';
 import { router as userRouter } from './users';
 import { router as prometheusRouter } from './prometheus';
-import { pubSub } from './events';
 import {
   TransformResMiddleware,
   LoggingMiddleware,
@@ -24,6 +23,8 @@ import {
 import { CLIENT_TTL, INDEX_TTL } from './utils';
 import { getIp } from './utils/Network';
 import { DescribeIndexResponse, MilvusClient } from './types';
+import { initWebSocket } from './socket';
+
 // initialize express app
 export const app = express();
 
@@ -88,41 +89,11 @@ app.get('*', (request, response) => {
 });
 // ErrorInterceptor
 app.use(ErrorMiddleware);
+// init websocket server
+initWebSocket(server);
 
 // start server
 server.listen(PORT, () => {
-  // initialize the WebSocket server instance
-  const io = new Server(server, {
-    cors: {
-      origin: '*',
-      methods: ['GET', 'POST'],
-    },
-  });
-
-  // Init WebSocket server event listener
-  io.on('connection', (socket: Socket) => {
-    console.info(
-      chalk.green(`ws client connected ${socket.client.conn.remoteAddress}`)
-    );
-    socket.on('COLLECTION', (message: any) => {
-      socket.emit('COLLECTION', { data: message });
-    });
-    pubSub.on('ws_pubsub', (msg: any) => {
-      socket.emit(msg.event, msg.data);
-    });
-    socket.on('disconnect', () => {
-      console.info(
-        chalk.green(
-          `ws client disconnected ${socket.client.conn.remoteAddress}`
-        )
-      );
-    });
-  });
-
-  server.on('disconnect', (socket: Socket) => {
-    io.removeAllListeners();
-  });
-
   const ips = getIp();
   ips.forEach(ip => {
     console.info(chalk.cyanBright(`Attu server started: http://${ip}:${PORT}`));

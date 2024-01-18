@@ -22,7 +22,7 @@ import {
   RenameCollectionDto,
   DuplicateCollectionDto,
 } from './dto';
-import { pubSub } from '../events';
+import { serverEvent } from '../events';
 import HttpErrors from 'http-errors';
 
 export class CollectionController {
@@ -33,6 +33,13 @@ export class CollectionController {
     this.collectionsService = new CollectionsService();
 
     this.router = Router();
+
+    // register server event
+    serverEvent.on(WS_EVENTS.EXPORT, data => {
+      if (data.type === WS_EVENTS_TYPE.CANCEL) {
+        this.cancelExport(data);
+      }
+    });
   }
 
   get collectionsServiceGetter() {
@@ -500,8 +507,9 @@ export class CollectionController {
     );
 
     // Emit the start event
-    pubSub.emit('ws_pubsub', {
-      event: WS_EVENTS.EXPORT + WS_EVENTS_TYPE.START,
+    serverEvent.emit(WS_EVENTS.TO_CLIENT, {
+      event: WS_EVENTS.EXPORT,
+      type: WS_EVENTS_TYPE.START,
       data: filename,
     });
 
@@ -535,8 +543,9 @@ export class CollectionController {
       console.time(`exporting from ${i} to ${nextPage}`);
 
       // Emit the export event
-      pubSub.emit('ws_pubsub', {
+      serverEvent.emit(WS_EVENTS.TO_CLIENT, {
         event: WS_EVENTS.EXPORT,
+        type: WS_EVENTS_TYPE.DOING,
         data: nextPage,
       });
 
@@ -582,12 +591,17 @@ export class CollectionController {
     stream.end();
 
     // Emit the stop event
-    pubSub.emit('ws_pubsub', {
-      event: WS_EVENTS.EXPORT + WS_EVENTS_TYPE.STOP,
+    serverEvent.emit(WS_EVENTS.TO_CLIENT, {
+      event: WS_EVENTS.EXPORT,
+      type: WS_EVENTS_TYPE.STOP,
       data: filename,
     });
 
     // End the timer for the export operation
     console.timeEnd(`exporting ${filename}`);
+  }
+
+  async cancelExport(data: any) {
+    console.log('cancel', data);
   }
 }

@@ -1,7 +1,7 @@
 import { schedule, ScheduledTask } from 'node-cron';
 import { CollectionsService } from '../collections/collections.service';
 import { WS_EVENTS, WS_EVENTS_TYPE } from '../utils';
-import { pubSub } from '../events';
+import { serverEvent } from '../events';
 
 export class CronsService {
   constructor(
@@ -39,7 +39,7 @@ export class CronsService {
         const res = await this.collectionService.getAllCollections();
         // TODO
         // this.eventService.server.emit("COLLECTION", res);
-        pubSub.emit('ws_pubsub', {
+        serverEvent.emit(WS_EVENTS.TO_CLIENT, {
           event: WS_EVENTS.COLLECTION + '',
           data: res,
         });

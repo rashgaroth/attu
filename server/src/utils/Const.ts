@@ -19,13 +19,17 @@ export enum LOADING_STATE {
 }
 
 export enum WS_EVENTS {
+  TO_SERVER = 'TO_SERVER',
+  TO_CLIENT = 'TO_CLIENT',
   COLLECTION = 'COLLECTION',
-  EXPORT = 'EXPORTING'
+  EXPORT = 'export',
 }
 
 export enum WS_EVENTS_TYPE {
   START,
+  DOING,
   STOP,
+  CANCEL,
 }
 
 export const DEFAULT_MILVUS_PORT = 19530;

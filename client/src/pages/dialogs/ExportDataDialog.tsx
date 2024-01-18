@@ -1,9 +1,9 @@
-import { FC, useContext, useMemo, useState } from 'react';
+import { FC, useEffect, useContext, useMemo, useState, useRef } from 'react';
 import * as d3 from 'd3';
 import { Typography, makeStyles, Theme } from '@material-ui/core';
 import { useTranslation } from 'react-i18next';
 import { rootContext } from '@/context';
-import { DataService, FieldHttp } from '@/http';
+import { DataService, FieldHttp, url } from '@/http';
 import DialogTemplate from '@/components/customDialog/DialogTemplate';
 import AttuGrid from '@/components/grid/Grid';
 import { ExportDataDialogProps } from './Types';
@@ -12,6 +12,8 @@ import CustomInput from '@/components/customInput/CustomInput';
 import { ITextfieldConfig } from '@/components/customInput/Types';
 import { formatForm, formatFieldType, ensureFileExtension } from '@/utils';
 import { useFormValidation } from '@/hooks';
+import { io, Socket } from 'socket.io-client';
+import { WS_EVENTS, WS_EVENTS_TYPE } from '@server/utils/Const';
 
 const useStyles = makeStyles((theme: Theme) => ({
   desc: {
@@ -35,6 +37,7 @@ const ExportDataDialog: FC<ExportDataDialogProps> = props => {
     filename: `${collection.collectionName}.json`,
   });
   const classes = useStyles();
+  const socket = useRef<Socket | null>(null);
 
   const { handleCloseDialog } = useContext(rootContext);
   const { t: dialogTrans } = useTranslation('dialog');
@@ -61,6 +64,20 @@ const ExportDataDialog: FC<ExportDataDialogProps> = props => {
     setExporting(false);
     handleCloseDialog();
     cb && cb();
+  };
+
+  const handleClose = async () => {
+    if (socket.current) {
+      socket.current.emit(WS_EVENTS.TO_SERVER, {
+        event: WS_EVENTS.EXPORT,
+        type: WS_EVENTS_TYPE.STOP,
+        data: form.filename,
+      });
+      socket.current.off(WS_EVENTS.EXPORT);
+      socket.current.close();
+    }
+
+    handleCloseDialog();
   };
 
   const colDefinitions: ColDefinitionsType[] = [
@@ -99,13 +116,36 @@ const ExportDataDialog: FC<ExportDataDialogProps> = props => {
     defaultValue: form.filename,
   };
 
+  useEffect(() => {
+    if (exporting) {
+      if (!socket.current) {
+        socket.current = io(url as string);
+      }
+
+      socket.current.on(WS_EVENTS.EXPORT, (data: any) => {
+        console.log('xx', data);
+      });
+
+      socket.current.on('connect_error', (error: any) => {
+        console.error('Connection Error', error);
+      });
+
+      return () => {
+        if (socket.current) {
+          socket.current.off(WS_EVENTS.EXPORT);
+          socket.current.close();
+        }
+      };
+    }
+  }, [exporting]);
+
   return (
     <DialogTemplate
       title={dialogTrans('exportTitle', {
         type: collection.collectionName,
       })}
       showCancel={false}
-      handleClose={handleCloseDialog}
+      handleClose={handleClose}
       children={
         <div className={classes.contentWrapper}>
           <Typography
