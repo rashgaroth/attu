@@ -3,7 +3,7 @@ import { Server, Socket } from 'socket.io';
 import * as http from 'http';
 import chalk from 'chalk';
 import { serverEvent } from './events';
-import { WS_EVENTS, WS_EVENTS_TYPE } from './utils';
+import { WS_EVENTS } from './utils';
 export let io: Server;
 
 export function initWebSocket(server: http.Server) {

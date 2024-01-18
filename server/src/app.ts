@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import * as http from 'http';
-import { Server, Socket } from 'socket.io';
 import { LRUCache } from 'lru-cache';
 import * as path from 'path';
 import chalk from 'chalk';
@@ -29,7 +28,14 @@ import { initWebSocket } from './socket';
 export const app = express();
 
 // initialize cache store
-export const clientCache = new LRUCache<string, MilvusClient>({
+export const clientCache = new LRUCache<
+  string,
+  {
+    client: MilvusClient;
+    address: string;
+    exportStream?: NodeJS.ReadWriteStream;
+  }
+>({
   ttl: CLIENT_TTL,
   ttlAutopurge: true,
 });

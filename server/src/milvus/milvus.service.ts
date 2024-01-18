@@ -13,9 +13,10 @@ import { clientCache } from '../app';
 
 export class MilvusService {
   private databaseService: DatabasesService;
-  // Share with all instances, so activeAddress is static
-  static activeAddress: string;
-  static activeMilvusClient: MilvusClient;
+  static get activeMilvusClient(): MilvusClient {
+    return;
+  }
+  static activeExportStream: NodeJS.ReadWriteStream;
 
   constructor() {
     this.databaseService = new DatabasesService();
@@ -29,15 +30,6 @@ export class MilvusService {
     // remove http prefix from address
     const ip = address.replace(/(http):\/\//, '');
     return ip.includes(':') ? ip : `${ip}:${DEFAULT_MILVUS_PORT}`;
-  }
-
-  checkMilvus() {
-    if (!MilvusService.activeMilvusClient) {
-      throw HttpErrors(
-        HTTP_STATUS_CODE.FORBIDDEN,
-        'Can not find your connection, please check your connection settings.'
-      );
-    }
   }
 
   async connectMilvus(data: {
@@ -80,15 +72,12 @@ export class MilvusService {
       // create the client
       const milvusClient: MilvusClient = new MilvusClient(clientOptions);
 
-      // Set the active Milvus client to the newly created client
-      MilvusService.activeMilvusClient = milvusClient;
-
       try {
         // Attempt to connect to the Milvus server
         await milvusClient.connectPromise;
       } catch (error) {
         // If the connection fails, clear the cache and throw an error
-        clientCache.dump();
+        clientCache.delete(milvusClient.clientId);
         throw new Error('Failed to connect to Milvus: ' + error);
       }
 
@@ -101,20 +90,22 @@ export class MilvusService {
       }
 
       // If the server is healthy, set the active address and add the client to the cache
-      MilvusService.activeAddress = address;
-      clientCache.set(milvusClient.clientId, milvusClient);
+      clientCache.set(milvusClient.clientId, { client: milvusClient, address });
 
       // Create a new database service and check if the specified database exists
       let hasDatabase = false;
       try {
-        hasDatabase = await this.databaseService.hasDatabase(database);
+        hasDatabase = await this.databaseService.hasDatabase(
+          milvusClient.clientId,
+          database
+        );
       } catch (_) {
         // ignore error
       }
 
       // if database exists, use this db
       if (hasDatabase) {
-        await this.databaseService.use(database);
+        await this.databaseService.use(milvusClient.clientId, database);
       }
 
       // Return the address and the database (if it exists, otherwise return 'default')
@@ -130,30 +121,38 @@ export class MilvusService {
     }
   }
 
-  async checkConnect(address: string) {
+  async checkConnect(clientId: string, address: string) {
     const milvusAddress = MilvusService.formatAddress(address);
     return { connected: clientCache.has(milvusAddress) };
   }
 
-  async flush(data: FlushReq) {
-    const res = await MilvusService.activeMilvusClient.flush(data);
+  async flush(clientId: string, data: FlushReq) {
+    const milvusClient = clientCache.get(clientId).client;
+
+    const res = await milvusClient.flush(data);
     return res;
   }
 
-  async getMetrics(): Promise<GetMetricsResponse> {
-    const res = await MilvusService.activeMilvusClient.getMetric({
+  async getMetrics(clientId: string): Promise<GetMetricsResponse> {
+    const milvusClient = clientCache.get(clientId).client;
+
+    const res = milvusClient.getMetric({
       request: { metric_type: 'system_info' },
     });
     return res;
   }
 
-  closeConnection(): connectivityState {
-    const res = MilvusService.activeMilvusClient.closeConnection();
+  closeConnection(clientId: string): connectivityState {
+    const milvusClient = clientCache.get(clientId).client;
+
+    const res = milvusClient.closeConnection();
     return res;
   }
 
-  async useDatabase(db: string) {
-    const res = await MilvusService.activeMilvusClient.use({
+  async useDatabase(clientId: string, db: string) {
+    const milvusClient = clientCache.get(clientId).client;
+
+    const res = milvusClient.use({
       db_name: db,
     });
     return res;

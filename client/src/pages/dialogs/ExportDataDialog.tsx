@@ -70,7 +70,7 @@ const ExportDataDialog: FC<ExportDataDialogProps> = props => {
     if (socket.current) {
       socket.current.emit(WS_EVENTS.TO_SERVER, {
         event: WS_EVENTS.EXPORT,
-        type: WS_EVENTS_TYPE.STOP,
+        type: WS_EVENTS_TYPE.CANCEL,
         data: form.filename,
       });
       socket.current.off(WS_EVENTS.EXPORT);
