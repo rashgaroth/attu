@@ -3,7 +3,6 @@ import * as JSONStream from 'jsonstream';
 import * as csv from 'fast-csv';
 import { dtoValidationMiddleware } from '../middleware/validation';
 import { CollectionsService } from './collections.service';
-import { MilvusService } from '../milvus/milvus.service';
 import {
   WS_EVENTS,
   WS_EVENTS_TYPE,
@@ -567,7 +566,7 @@ export class CollectionController {
     res.setHeader('Content-disposition', `attachment; filename=${filename}`);
 
     // Initialize the stream based on the export type
-    let stream: NodeJS.ReadWriteStream =
+    const stream: NodeJS.ReadWriteStream =
       type === 'csv' ? csv.format({ headers: true }) : JSONStream.stringify();
 
     // set res header
@@ -597,7 +596,7 @@ export class CollectionController {
       });
 
       // Construct the expression for the query
-      let expr = `${pkField} > ${
+      const expr = `${pkField} > ${
         pkType === 'VarChar' ? `'${lastId}'` : `${lastId}`
       }`;
 
@@ -616,14 +615,16 @@ export class CollectionController {
       // Loop through the result data
       for (const item of result.data) {
         for (const key in item) {
-          // Delete the id if it's not in the output fields
-          if (!outputFields.includes(key)) {
-            delete item[key];
-            continue;
-          }
-          // Handle array data for csv export
-          if (type === 'csv' && Array.isArray(item[key])) {
-            item[key] = JSON.stringify(item[key]);
+          if (item.hasOwnProperty(key)) {
+            // Delete the id if it's not in the output fields
+            if (!outputFields.includes(key)) {
+              delete item[key];
+              continue;
+            }
+            // Handle array data for csv export
+            if (type === 'csv' && Array.isArray(item[key])) {
+              item[key] = JSON.stringify(item[key]);
+            }
           }
         }
 
