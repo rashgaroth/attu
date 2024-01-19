@@ -5,13 +5,11 @@ import {
   DescribeIndexResponse,
 } from '@zilliz/milvus2-sdk-node';
 import { throwErrorFromSDK } from '../utils/Error';
-import { indexCache } from '../app';
 import { clientCache } from '../app';
 
 export class SchemaService {
   async createIndex(clientId: string, data: CreateIndexReq) {
-    const milvusClient = clientCache.get(clientId).client;
-
+    const { milvusClient, indexCache } = clientCache.get(clientId);
     const res = await milvusClient.createIndex(data);
     const key = data.collection_name;
 
@@ -31,7 +29,7 @@ export class SchemaService {
    * @returns - The response from the Milvus SDK's describeIndex function or the cached index description.
    */
   async describeIndex(clientId: string, data: DescribeIndexReq) {
-    const milvusClient = clientCache.get(clientId).client;
+    const { milvusClient, indexCache } = clientCache.get(clientId);
 
     // Get the collection name from the request data
     const key = data.collection_name;
@@ -64,7 +62,7 @@ export class SchemaService {
   }
 
   async dropIndex(clientId: string, data: DropIndexReq) {
-    const milvusClient = clientCache.get(clientId).client;
+    const { milvusClient, indexCache } = clientCache.get(clientId);
 
     const res = await milvusClient.dropIndex(data);
     const key = data.collection_name;
@@ -76,6 +74,7 @@ export class SchemaService {
   }
 
   async clearCache(clientId: string) {
+    const { indexCache } = clientCache.get(clientId);
     return indexCache.clear();
   }
 }

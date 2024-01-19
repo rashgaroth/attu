@@ -19,7 +19,7 @@ import {
   ErrorMiddleware,
   ReqHeaderMiddleware,
 } from './middleware';
-import { CLIENT_TTL, INDEX_TTL } from './utils';
+import { CLIENT_TTL } from './utils';
 import { getIp } from './utils/Network';
 import { DescribeIndexResponse, MilvusClient } from './types';
 import { initWebSocket } from './socket';
@@ -31,17 +31,12 @@ export const app = express();
 export const clientCache = new LRUCache<
   string,
   {
-    client: MilvusClient;
+    milvusClient: MilvusClient;
     address: string;
-    exportStream?: NodeJS.ReadWriteStream;
+    indexCache: LRUCache<string, DescribeIndexResponse>;
   }
 >({
   ttl: CLIENT_TTL,
-  ttlAutopurge: true,
-});
-
-export const indexCache = new LRUCache<string, DescribeIndexResponse>({
-  ttl: INDEX_TTL,
   ttlAutopurge: true,
 });
 

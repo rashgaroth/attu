@@ -33,7 +33,7 @@ export class PartitionsService {
   }
 
   async getPartitions(clientId: string, data: ShowPartitionsReq) {
-    const milvusClient = clientCache.get(clientId).client;
+        const { milvusClient } = clientCache.get(clientId);
 
     const res = await milvusClient.showPartitions(data);
     throwErrorFromSDK(res.status);
@@ -41,7 +41,7 @@ export class PartitionsService {
   }
 
   async createPartition(clientId: string, data: CreatePartitionReq) {
-    const milvusClient = clientCache.get(clientId).client;
+        const { milvusClient } = clientCache.get(clientId);
 
     const res = await milvusClient.createPartition(data);
     throwErrorFromSDK(res);
@@ -49,7 +49,7 @@ export class PartitionsService {
   }
 
   async deletePartition(clientId: string, data: DropPartitionReq) {
-    const milvusClient = clientCache.get(clientId).client;
+        const { milvusClient } = clientCache.get(clientId);
 
     const res = await milvusClient.dropPartition(data);
     throwErrorFromSDK(res);
@@ -60,7 +60,7 @@ export class PartitionsService {
     clientId: string,
     data: GetPartitionStatisticsReq
   ) {
-    const milvusClient = clientCache.get(clientId).client;
+        const { milvusClient } = clientCache.get(clientId);
 
     const res = await milvusClient.getPartitionStatistics(data);
     throwErrorFromSDK(res.status);
@@ -68,7 +68,7 @@ export class PartitionsService {
   }
 
   async loadPartitions(clientId: string, data: LoadPartitionsReq) {
-    const milvusClient = clientCache.get(clientId).client;
+        const { milvusClient } = clientCache.get(clientId);
 
     const res = await milvusClient.loadPartitions(data);
     throwErrorFromSDK(res);
@@ -76,7 +76,7 @@ export class PartitionsService {
   }
 
   async releasePartitions(clientId: string, data: ReleasePartitionsReq) {
-    const milvusClient = clientCache.get(clientId).client;
+        const { milvusClient } = clientCache.get(clientId);
 
     const res = await milvusClient.releasePartitions(data);
     throwErrorFromSDK(res);

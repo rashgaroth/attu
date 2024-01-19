@@ -3,20 +3,16 @@ import {
   FlushReq,
   GetMetricsResponse,
   ClientConfig,
+  DescribeIndexResponse,
 } from '@zilliz/milvus2-sdk-node';
-import HttpErrors from 'http-errors';
-import { HTTP_STATUS_CODE } from '../utils/Const';
-import { DEFAULT_MILVUS_PORT } from '../utils';
+import { LRUCache } from 'lru-cache';
+import { DEFAULT_MILVUS_PORT, INDEX_TTL } from '../utils';
 import { connectivityState } from '@grpc/grpc-js';
 import { DatabasesService } from '../database/databases.service';
 import { clientCache } from '../app';
 
 export class MilvusService {
   private databaseService: DatabasesService;
-  static get activeMilvusClient(): MilvusClient {
-    return;
-  }
-  static activeExportStream: NodeJS.ReadWriteStream;
 
   constructor() {
     this.databaseService = new DatabasesService();
@@ -90,7 +86,14 @@ export class MilvusService {
       }
 
       // If the server is healthy, set the active address and add the client to the cache
-      clientCache.set(milvusClient.clientId, { client: milvusClient, address });
+      clientCache.set(milvusClient.clientId, {
+        milvusClient,
+        address,
+        indexCache: new LRUCache<string, DescribeIndexResponse>({
+          ttl: INDEX_TTL,
+          ttlAutopurge: true,
+        }),
+      });
 
       // Create a new database service and check if the specified database exists
       let hasDatabase = false;
@@ -127,14 +130,14 @@ export class MilvusService {
   }
 
   async flush(clientId: string, data: FlushReq) {
-    const milvusClient = clientCache.get(clientId).client;
+    const { milvusClient } = clientCache.get(clientId);
 
     const res = await milvusClient.flush(data);
     return res;
   }
 
   async getMetrics(clientId: string): Promise<GetMetricsResponse> {
-    const milvusClient = clientCache.get(clientId).client;
+    const { milvusClient } = clientCache.get(clientId);
 
     const res = milvusClient.getMetric({
       request: { metric_type: 'system_info' },
@@ -143,14 +146,14 @@ export class MilvusService {
   }
 
   closeConnection(clientId: string): connectivityState {
-    const milvusClient = clientCache.get(clientId).client;
+    const { milvusClient } = clientCache.get(clientId);
 
     const res = milvusClient.closeConnection();
     return res;
   }
 
   async useDatabase(clientId: string, db: string) {
-    const milvusClient = clientCache.get(clientId).client;
+    const { milvusClient } = clientCache.get(clientId);
 
     const res = milvusClient.use({
       db_name: db,

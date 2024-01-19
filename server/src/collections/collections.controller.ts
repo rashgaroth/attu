@@ -4,7 +4,6 @@ import * as csv from 'fast-csv';
 import { dtoValidationMiddleware } from '../middleware/validation';
 import { CollectionsService } from './collections.service';
 import { MilvusService } from '../milvus/milvus.service';
-import { LoadCollectionReq } from '@zilliz/milvus2-sdk-node';
 import {
   WS_EVENTS,
   WS_EVENTS_TYPE,
@@ -12,6 +11,7 @@ import {
   EXPORT_PAGE_SIZE,
   EXPORT_MAX_COUNT,
 } from '../utils';
+import { LoadCollectionReq } from '@zilliz/milvus2-sdk-node';
 import {
   CreateAliasDto,
   CreateCollectionDto,
@@ -24,6 +24,7 @@ import {
 } from './dto';
 import { serverEvent } from '../events';
 import HttpErrors from 'http-errors';
+import { clientCache } from '../app';
 
 export class CollectionController {
   private collectionsService: CollectionsService;
@@ -509,6 +510,8 @@ export class CollectionController {
 
   // This function exports the result of a query
   async exportQueryResult(req: Request, res: Response, next: NextFunction) {
+    const { milvusClient } = clientCache.get(req.clientId);
+
     // Get the collection name from the request parameters
     const name = req.params?.name;
     // Get the request body
@@ -534,11 +537,11 @@ export class CollectionController {
     }
 
     // Get the primary key field name of the collection
-    const pkField = await MilvusService.activeMilvusClient.getPkFieldName({
+    const pkField = await milvusClient.getPkFieldName({
       collection_name: name,
     });
     // Get the primary key field type of the collection
-    const pkType = await MilvusService.activeMilvusClient.getPkFieldType({
+    const pkType = await milvusClient.getPkFieldType({
       collection_name: name,
     });
 

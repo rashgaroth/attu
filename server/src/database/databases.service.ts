@@ -9,7 +9,7 @@ import { clientCache } from '../app';
 
 export class DatabasesService {
   async createDatabase(clientId: string, data: CreateDatabaseRequest) {
-    const milvusClient = clientCache.get(clientId).client;
+        const { milvusClient } = clientCache.get(clientId);
 
     const res = await milvusClient.createDatabase(data);
     throwErrorFromSDK(res);
@@ -17,7 +17,7 @@ export class DatabasesService {
   }
 
   async listDatabase(clientId: string, data?: ListDatabasesRequest) {
-    const milvusClient = clientCache.get(clientId).client;
+        const { milvusClient } = clientCache.get(clientId);
 
     const res = await milvusClient.listDatabases(data);
     throwErrorFromSDK(res.status);
@@ -25,7 +25,7 @@ export class DatabasesService {
   }
 
   async dropDatabase(clientId: string, data: DropDatabasesRequest) {
-    const milvusClient = clientCache.get(clientId).client;
+        const { milvusClient } = clientCache.get(clientId);
 
     const res = await milvusClient.dropDatabase(data);
     throwErrorFromSDK(res);
@@ -33,7 +33,7 @@ export class DatabasesService {
   }
 
   async use(clientId: string, db_name: string) {
-    const milvusClient = clientCache.get(clientId).client;
+        const { milvusClient } = clientCache.get(clientId);
 
     return await await milvusClient.use({ db_name });
   }
