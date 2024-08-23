@@ -13,6 +13,7 @@ import FlushDialog from '@/pages/dialogs/FlushDialog';
 import { getQueryStyles } from '../data/Styles';
 import { Segment } from './Types';
 import { getLabelDisplayedRows } from '../../../search/Utils';
+import TreeMap from './TreeMapChart';
 
 const Segments = () => {
   const { collectionName = '' } = useParams<{ collectionName: string }>();
@@ -47,6 +48,29 @@ const Segments = () => {
     setSegments(combinedArray);
     setLoading(false);
   };
+
+  console.log(segments);
+
+  // build a map, key is query node id, value is a map, key is partition id, value is segments
+  const buildQueryNodeMap = (segments: Segment[]) => {
+    const map = new Map<string, Map<string, Segment[]>>();
+    segments.forEach(segment => {
+      const nodeIds = segment.q_nodeIds || [-1];
+      nodeIds.forEach(nodeId => {
+        const partitionMap = map.get(nodeId) || new Map<string, Segment[]>();
+        if (!map.has(nodeId)) {
+          map.set(nodeId, partitionMap);
+        }
+
+        const partitionSegments = partitionMap.get(segment.partitionID) || [];
+        partitionSegments.push(segment);
+        partitionMap.set(segment.partitionID, partitionSegments);
+      });
+    });
+    return map;
+  };
+
+  const treeMapData = buildQueryNodeMap(segments);
 
   const onCompactExecuted = async () => {
     await fetchSegments();
@@ -216,7 +240,7 @@ const Segments = () => {
   return (
     <div className={classes.root}>
       <CustomToolBar toolbarConfigs={toolbarConfigs} />
-
+      <TreeMap originData={treeMapData} width={1000} height={600} />
       <AttuGrid
         toolbarConfigs={[]}
         colDefinitions={colDefinitions}
