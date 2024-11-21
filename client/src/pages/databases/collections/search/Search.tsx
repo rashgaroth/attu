@@ -31,7 +31,6 @@ import {
   buildSearchParams,
   buildSearchCode,
   getColumnWidth,
-  detectItemType,
 } from '@/utils';
 import SearchParams from '../../../search/SearchParams';
 import DataExplorer, { formatMilvusData } from './DataExplorer';
@@ -46,7 +45,7 @@ import { ColDefinitionsType } from '@/components/grid/Types';
 import { CollectionObject, CollectionFullObject } from '@server/types';
 import CodeDialog from '@/pages/dialogs/CodeDialog';
 import CollectionColHeader from '../CollectionColHeader';
-import MediaPreview from '@/components/MediaPreview/MediaPreview';
+import DataView from '@/components/DataView/DataView';
 
 export interface CollectionDataProps {
   collectionName: string;
@@ -329,18 +328,16 @@ const Search = (props: CollectionDataProps) => {
                 return <CollectionColHeader def={v} collection={collection} />;
               },
               formatter(_: any, cellData: any) {
-                const itemType = detectItemType(cellData);
-                switch (itemType) {
-                  case 'json':
-                  case 'array':
-                  case 'bool':
-                    const res = JSON.stringify(cellData);
-                    return <Typography title={res}>{res}</Typography>;
-                  case 'string':
-                    return <MediaPreview value={cellData} />;
-                  default:
-                    return cellData;
-                }
+                const field = collection.schema.fields.find(
+                  f => f.name === key
+                );
+
+                return (
+                  <DataView
+                    type={field?.data_type || 'JSON'}
+                    value={cellData}
+                  />
+                );
               },
               getStyle: d => {
                 const field = collection.schema.fields.find(

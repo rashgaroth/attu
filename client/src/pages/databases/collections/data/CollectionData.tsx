@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useContext } from 'react';
-import { Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { rootContext, dataContext } from '@/context';
 import { DataService } from '@/http';
@@ -25,13 +24,12 @@ import {
 import CustomSelector from '@/components/customSelector/CustomSelector';
 import EmptyDataDialog from '@/pages/dialogs/EmptyDataDialog';
 import ImportSampleDialog from '@/pages/dialogs/ImportSampleDialog';
-import { detectItemType } from '@/utils';
 import { CollectionObject, CollectionFullObject } from '@server/types';
 import StatusIcon, { LoadingType } from '@/components/status/StatusIcon';
 import CustomInput from '@/components/customInput/CustomInput';
 import CustomMultiSelector from '@/components/customSelector/CustomMultiSelector';
 import CollectionColHeader from '../CollectionColHeader';
-import MediaPreview from '@/components/MediaPreview/MediaPreview';
+import DataView from '@/components/DataView/DataView';
 
 export interface CollectionDataProps {
   collectionName: string;
@@ -505,18 +503,13 @@ const CollectionData = (props: CollectionDataProps) => {
                 disablePadding: false,
                 needCopy: true,
                 formatter(_: any, cellData: any) {
-                  const itemType = detectItemType(cellData);
-                  switch (itemType) {
-                    case 'json':
-                    case 'array':
-                    case 'bool':
-                      const res = JSON.stringify(cellData);
-                      return <Typography title={res}>{res}</Typography>;
-                    case 'string':
-                      return <MediaPreview value={cellData} />;
-                    default:
-                      return cellData;
-                  }
+                  const field = collection.schema.fields.find(
+                    f => f.name === i
+                  );
+
+                  const fieldType = field?.data_type || 'JSON'; // dynamic
+
+                  return <DataView type={fieldType} value={cellData} />;
                 },
                 headerFormatter: v => {
                   return (

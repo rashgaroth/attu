@@ -29,6 +29,8 @@ const collectionTrans = {
     'Consistency refers to the property that ensures every node or replica has the same view of data when writing or reading data at a given time.',
   entityCountInfo:
     'This count is an approximation and may be slightly delayed due to the unique mechanisms of Milvus. The actual count may vary and is updated periodically. Please note that this number should be used as a reference and not as an exact count.',
+  replicaTooltip: 'The number of replicas for the collection, it can not exceed the number of query nodes.',
+  modifyReplicaTooltip: 'Modify Replica Number',
 
   // create dialog
   createTitle: 'Create Collection',
@@ -67,6 +69,7 @@ const collectionTrans = {
   loadContent:
     'All search and query operations within Milvus are executed in memory, only loaded collection can be searched.',
   loadConfirmLabel: 'Load',
+  replica: 'Replica',
   replicaNum: 'Replica number',
   replicaDes: `With in-memory replicas, Milvus can load the same segment on multiple query nodes. The replica number can not exceed query node count.`,
   enableRepica: `Enable in-memory replica`,
@@ -134,7 +137,7 @@ const collectionTrans = {
   clickToLoad: 'Click to load the collection.',
   clickToRelease: 'Click to release the collection.',
   clickToSearch: 'Click to execute vector search.',
-  clickToCreateVectorIndex: 'Click to create an vector index.',
+  clickToCreateVectorIndex: 'Click to create the vector index.',
   collectionIsLoading: 'The collection is loading...',
 };
 

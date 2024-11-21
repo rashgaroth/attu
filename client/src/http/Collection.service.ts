@@ -15,13 +15,20 @@ import { ManageRequestMethods } from '../types/Common';
 import {
   IndexCreateParam,
   IndexManageParam,
-} from '@/pages/databases/collections/overview/Types';
+} from '@/pages/databases/collections/schema/Types';
 
 export class CollectionService extends BaseModel {
   static getCollections(data?: {
     type: ShowCollectionsType;
   }): Promise<CollectionObject[]> {
     return super.findAll({ path: `/collections`, params: data || {} });
+  }
+
+  static describeCollectionUnformatted(collectionName: string) {
+    return super.search({
+      path: `/collections/${collectionName}/unformatted`,
+      params: {},
+    });
   }
 
   static getCollection(collectionName: string) {

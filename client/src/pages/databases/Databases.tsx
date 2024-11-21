@@ -8,7 +8,7 @@ import RouteTabList from '@/components/customTabList/RouteTabList';
 import DatabaseTree from '@/pages/databases/tree';
 import { ITab } from '@/components/customTabList/Types';
 import Partitions from './collections/partitions/Partitions';
-import Overview from './collections/overview/Overview';
+import Schema from './collections/schema/Schema';
 import Data from './collections/data/CollectionData';
 import Segments from './collections/segments/Segments';
 import Properties from './collections/properties/Properties';
@@ -17,8 +17,6 @@ import { dataContext, authContext } from '@/context';
 import Collections from './collections/Collections';
 import StatusIcon, { LoadingType } from '@/components/status/StatusIcon';
 import { ConsistencyLevelEnum, DYNAMIC_FIELD } from '@/consts';
-import RefreshButton from './RefreshButton';
-import CopyButton from '@/components/advancedSearch/CopyButton';
 import { SearchParams } from './types';
 import { CollectionObject, CollectionFullObject } from '@server/types';
 import { makeStyles } from '@mui/styles';
@@ -248,16 +246,6 @@ const Databases = () => {
   useNavigationHook(ALL_ROUTER_TYPES.DATABASES, {
     collectionName,
     databaseName,
-    extra: (
-      <>
-        <CopyButton label="" value={collectionName} />
-        <RefreshButton
-          onClick={async () => {
-            await fetchCollection(collectionName);
-          }}
-        />
-      </>
-    ),
   });
 
   const setCollectionSearchParams = (params: SearchParams) => {
@@ -391,9 +379,9 @@ const CollectionTabs = (props: {
   // collection tabs
   const collectionTabs: ITab[] = [
     {
-      label: collectionTrans('overviewTab'),
-      component: <Overview />,
-      path: `overview`,
+      label: collectionTrans('schemaTab'),
+      component: <Schema />,
+      path: `schema`,
     },
     {
       label: collectionTrans('searchTab'),
